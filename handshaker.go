@@ -85,6 +85,7 @@ type handshakeFSM struct {
 	cache         *handshakeCache
 	cfg           *handshakeConfig
 	closed        chan struct{}
+	sendCounter   int
 }
 
 type handshakeConfig struct {
@@ -191,6 +192,8 @@ func (s *handshakeFSM) Done() <-chan struct{} {
 }
 
 func (s *handshakeFSM) prepare(ctx context.Context, c flightConn) (handshakeState, error) {
+	s.cfg.log.Warnf("[handshake:%s] prepare (sendCounter: %d)", srvCliStr(s.state.isClient), s.sendCounter)
+	s.sendCounter = 0
 	s.flights = nil
 	// Prepare flights
 	var (
@@ -239,8 +242,17 @@ func (s *handshakeFSM) prepare(ctx context.Context, c flightConn) (handshakeStat
 
 func (s *handshakeFSM) send(ctx context.Context, c flightConn) (handshakeState, error) {
 	// Send flights
-	if err := c.writePackets(ctx, s.flights); err != nil {
-		return handshakeErrored, err
+
+	// Simulate packet loss
+	s.cfg.log.Warnf("[handshake:%s] send (sendCounter: %d)", srvCliStr(s.state.isClient), s.sendCounter)
+
+	if (s.currentFlight == flight4 || s.currentFlight == flight6) && s.sendCounter < 3 {
+		s.cfg.log.Warnf("[handshake:%s] packet drop", srvCliStr(s.state.isClient))
+		s.sendCounter++
+	} else {
+		if err := c.writePackets(ctx, s.flights); err != nil {
+			return handshakeErrored, err
+		}
 	}
 
 	if s.currentFlight.isLastSendFlight() {
