@@ -31,6 +31,7 @@ func main() {
 		PSKIdentityHint:      []byte("Pion DTLS Client"),
 		CipherSuites:         []dtls.CipherSuiteID{dtls.TLS_PSK_WITH_AES_128_CCM_8},
 		ExtendedMasterSecret: dtls.RequireExtendedMasterSecret,
+		FlightInterval: 5*time.Second,
 		// Create timeout context for accepted connection.
 		ConnectContextMaker: func() (context.Context, func()) {
 			return context.WithTimeout(ctx, 30*time.Second)
