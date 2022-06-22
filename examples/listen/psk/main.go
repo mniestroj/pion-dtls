@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// Prepare the IP to connect to
-	addr := &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: 4444}
+	addr := &net.UDPAddr{IP: net.ParseIP("192.0.2.2"), Port: 5684}
 
 	// Create parent context to cleanup handshaking connections on exit.
 	ctx, cancel := context.WithCancel(context.Background())
@@ -26,7 +26,7 @@ func main() {
 	config := &dtls.Config{
 		PSK: func(hint []byte) ([]byte, error) {
 			fmt.Printf("Client's hint: %s \n", hint)
-			return []byte{0xAB, 0xC1, 0x23}, nil
+			return []byte("1r0nm@n"), nil
 		},
 		CipherSuites:         []dtls.CipherSuiteID{dtls.TLS_PSK_WITH_AES_128_CCM_8},
 		ExtendedMasterSecret: dtls.DisableExtendedMasterSecret,
